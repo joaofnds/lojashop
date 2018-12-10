@@ -1,4 +1,26 @@
 .data
+
+menu:
+	.asciiz "0. sair\n1. inserir item\n2. procurar item\n"
+
+id_string:
+	.asciiz "\n\nid:         "
+
+quantity_string:
+	.asciiz "\nquantidade: "
+
+price_string:
+	.asciiz "\npreço:      R$ "
+
+name_string:
+	.asciiz "\nnome:       "
+
+comma_string:
+	.asciiz ","
+
+message_item_not_found:
+	.asciiz "item não encontrado\n"
+
 prompt_id:
 	.asciiz "digite o id"
 
@@ -21,7 +43,7 @@ block_size:
 inventory:
 	.word 1                       # id
 	.word 2                       # quantity
-	.word 200                     # price
+	.word 150                     # price
 	.asciiz "coca caçulinha     " # name
 
 	.word 2                       # id
@@ -35,37 +57,72 @@ inventory:
 	.asciiz "coca de litrao mega" # name
 
 .text
+
+.globl main
+
+main:
 	lw $s0, block_size
 
+	main_loop:
+		la $a0, menu
+		li $v0, 51
+		syscall
+
+		beqz $a0, exit_main
+		nop
+
+		li $t0, 1
+		beq $a0, $t0, handle_item_insertion
+		nop
+
+		li $t0, 2
+		beq $a0, $t0, handle_search_item
+		nop
+
+		j main_loop
+		nop
+
+	exit_main:
+		li $v0, 10
+		syscall
+
+handle_item_insertion:
 	la $a0, inventory
 	jal create_item
 	nop
 
-	la $a0, inventory
-	jal create_item
+	j main_loop
 	nop
 
+handle_search_item:
 	la $a0, prompt_id
 	li $v0, 51
 	syscall
 
 	or $a1, $zero, $a0
 	la $a0, inventory
-
 	jal find_item_by_id
 	nop
 
-	or $a0, $zero, $v0
-	jal get_item_name
+	beqz $v0, hsi_item_not_found
 	nop
 
+	# item found
 	or $a0, $zero, $v0
-	li $a1, 1
-	li $v0, 55
-	syscall
+	jal display_item
+	nop
 
-	li $v0, 10
-	syscall
+	j main_loop
+	nop
+
+	hsi_item_not_found:
+		la $a0, message_item_not_found
+		li $a1, 0
+		li $v0, 55
+		syscall
+
+		j main_loop
+		nop
 
 # find_item_by_id(*inventory, item_id): (*item | null)
 find_item_by_id:
@@ -240,6 +297,60 @@ prompt_and_store_item_name:
 	addi $a1, $t0, 12
 	li $a2, 20
 	li $v0, 54
+	syscall
+
+	jr $ra
+	nop
+
+# display_item(*item)
+display_item:
+	or $t0, $zero, $a0
+
+	# print(item->id)
+	la $a0, id_string
+	li $v0, 4
+	syscall
+
+	lw $a0 0($t0)
+	li $v0, 1
+	syscall
+
+	# print(item->quantity)
+	la $a0, quantity_string
+	li $v0, 4
+	syscall
+
+	lw $a0 4($t0)
+	li $v0, 1
+	syscall
+
+	# print(item->price)
+	la $a0, price_string
+	li $v0, 4
+	syscall
+
+	# $a0 = item->price (in cents)
+	lw $a0 8($t0)
+
+	div $a0, $a0, 100
+	li $v0, 1
+	syscall
+
+	la $a0, comma_string
+	li $v0, 4
+	syscall
+
+	mfhi $a0
+	li $v0, 1
+	syscall
+
+	# print(item->name)
+	la $a0, name_string
+	li $v0, 4
+	syscall
+
+	la $a0, 12($t0)
+	li $v0, 4
 	syscall
 
 	jr $ra
