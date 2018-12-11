@@ -225,7 +225,13 @@ handle_checkout:
 		nop
 
 	hc_exit:
-		addi $sp, $sp, 4
+		lw $a0, 0($sp) # *cart
+		sw $zero, 0($a0) # (*last_item++)->id = 0
+
+		add $a0, $a0, $s0 # *last_item++
+		sw $zero, 0($a0) # (*last_item++)->id = 0
+
+		addi $sp, $sp, 4 # pop()
 
 		j main_loop
 		nop
@@ -281,7 +287,13 @@ create_item:
 	jal prompt_and_store_item_name
 	nop
 
-	sw $zero, 24($sp)
+	lw $a0, 0($sp) # *last_item
+
+	add $a0, $a0, $s0 # *last_item++
+	sw $zero, 0($a0) # (*last_item++)->id = 0
+
+	add $a0, $a0, $s0 # *last_item++
+	sw $zero, 0($a0) # (*last_item++)->id = 0
 
 	# pop()
 	addi $sp, $sp, 4
