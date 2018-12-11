@@ -18,6 +18,9 @@ name_string:
 comma_string:
 	.asciiz ","
 
+dev_null:
+	.space 4
+
 message_item_not_found:
 	.asciiz "item não encontrado\n"
 
@@ -129,36 +132,17 @@ handle_search_item:
 		nop
 
 handle_show_inventory:
-	la $t0, inventory
-	subi $sp, $sp, 4
-	sw $t0, 0($sp)
+	la $a0, inventory
+	jal show_iventory
+	nop
 
-	hsi_loop:
-		lw $t1, 0($t0)
+	li $v0, 8
+	la $a0, dev_null
+	li $a1, 1
+	syscall
 
-		beqz $t1, hsi_exit
-		nop
-
-		or $a0, $zero, $t0
-		jal display_item
-		nop
-
-		lw $t0, 0($sp)
-		add $t0, $t0, $s0
-		sw $t0, 0($sp)
-
-		j hsi_loop
-		nop
-	hsi_exit:
-		addi $sp, $sp, 4
-
-		li $v0, 8
-		or $a0, $zero, $t0
-		li $a1, 1
-		syscall
-
-		j main_loop
-		nop
+	j main_loop
+	nop
 
 # find_item_by_id(*inventory, item_id): (*item | null)
 find_item_by_id:
@@ -391,3 +375,37 @@ display_item:
 
 	jr $ra
 	nop
+
+# show_iventory(*inventory)
+show_iventory:
+	# push($ra)
+	subi $sp, $sp, 4
+	sw $ra, 0($sp)
+
+	# push($a0)
+	subi $sp, $sp, 4
+	sw $a0, 0($sp)
+
+	si_loop:
+		lw $t0, 0($a0)
+
+		beqz $t0, si_exit
+		nop
+
+		jal display_item
+		nop
+
+		lw $a0, 0($sp)
+		add $a0, $a0, $s0
+		sw $a0, 0($sp)
+
+		j si_loop
+		nop
+	si_exit:
+		addi $sp, $sp, 4 # pop() -> $a0
+
+		lw $ra, 0($sp)
+		addi $sp, $sp, 4 # $ra = pop()
+
+		jr $ra
+		nop
