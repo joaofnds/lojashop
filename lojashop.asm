@@ -1,7 +1,7 @@
 .data
 
 menu:
-	.asciiz "0. sair\n1. inserir item\n2. procurar item\n3. mostrar inventário\n"
+	.asciiz "0. sair\n1. inserir item\n2. procurar item\n3. mostrar inventário\n4. comprar"
 
 id_string:
 	.asciiz "\n\nid:         "
@@ -17,6 +17,12 @@ name_string:
 
 comma_string:
 	.asciiz ","
+
+cart_string:
+	.asciiz "\n\ncarrinho:\n"
+
+prompt_new_cart_item:
+	.asciiz "\ndigite o id do item que deseja adicionar ao carrinho: "
 
 dev_null:
 	.space 4
@@ -86,6 +92,10 @@ main:
 		beq $a0, $t0, handle_show_inventory
 		nop
 
+		li $t0, 4
+		beq $a0, $t0, handle_checkout
+		nop
+
 		j main_loop
 		nop
 
@@ -133,7 +143,7 @@ handle_search_item:
 
 handle_show_inventory:
 	la $a0, inventory
-	jal show_iventory
+	jal show_inventory
 	nop
 
 	li $v0, 8
@@ -143,6 +153,82 @@ handle_show_inventory:
 
 	j main_loop
 	nop
+
+handle_checkout:
+	la $a0, inventory
+	jal new_item_address
+	nop
+
+	add $v0, $v0, $s0
+
+	# push(*cart)
+	subi $sp, $sp, 4
+	sw $v0, 0($sp)
+
+	hc_loop:
+		# display inventory
+		la $a0, inventory
+		jal show_inventory
+		nop
+
+		# display cart
+		li $v0, 4
+		la $a0, cart_string
+		syscall
+
+		lw $a0, 0($sp)
+		jal show_inventory
+		nop
+
+		# prompt item id
+		la $a0, prompt_new_cart_item
+		li $v0, 4
+		syscall
+
+		li $v0, 5
+		syscall
+
+		# find item by read id
+		la $a0, inventory
+		or $a1, $zero, $v0
+		jal find_item_by_id
+		nop
+
+		# exit if item->quantity == 0
+		lw $t0, 4($v0)
+		beqz $t0, hc_exit
+		nop
+
+		# item->quantity--
+		subi $t0, $t0, 1
+		sw $t0, 4($v0)
+
+		lw $a0, 0($sp) # $a0 = stack_top() # *cart
+		lw $a1, 0($v0) # $t0 = item->id
+
+		# push(*buying_item)
+		subi $sp, $sp, 4
+		sw $v0, 0($sp)
+
+		jal find_item_by_id
+		nop
+
+		lw $a1, 0($sp)
+		addi $sp, $sp, 4
+
+		lw $a0, 0($sp)
+
+		jal add_to_cart
+		nop
+
+		j hc_loop
+		nop
+
+	hc_exit:
+		addi $sp, $sp, 4
+
+		j main_loop
+		nop
 
 # find_item_by_id(*inventory, item_id): (*item | null)
 find_item_by_id:
@@ -378,8 +464,8 @@ display_item:
 	jr $ra
 	nop
 
-# show_iventory(*inventory)
-show_iventory:
+# show_inventory(*inventory)
+show_inventory:
 	# push($ra)
 	subi $sp, $sp, 4
 	sw $ra, 0($sp)
@@ -409,5 +495,75 @@ show_iventory:
 		lw $ra, 0($sp)
 		addi $sp, $sp, 4 # $ra = pop()
 
+		jr $ra
+		nop
+
+# add_to_cart()
+add_to_cart:
+	# $a0 -> *cart
+	# $a1 -> *item (from inventory)
+
+	subi $sp, $sp, 4
+	sw $ra, 0($sp)
+
+	subi $sp, $sp, 4
+	sw $a1, 0($sp)
+
+	lw $a1, 0($a1) # $t0 = item->id
+
+	jal find_item_by_id
+	nop
+
+	lw $a1, 0($sp)
+	addi $sp, $sp, 4
+
+	lw $t0, 0($v0) # search_item->id
+
+	beqz $t0, atc_item_not_found
+	nop
+
+	# item found
+	lw $t0, 4($v0)
+	addi $t0, $t0, 1
+	sw $t0, 4($v0)
+
+	j atc_exit
+	nop
+
+	atc_item_not_found:
+		# set new cart item id
+		lw $t0, 0($a1)
+		sw $t0, 0($v0)
+
+		# set new cart item quantity
+		li $t0, 1
+		sw $t0, 4($v0)
+
+		# set new cart item price
+		lw $t0, 8($a1)
+		sw $t0, 8($v0)
+
+		addi $t0, $a1, 12 # inventory item name pointer
+		addi $t1, $v0, 12 # cart item name pointer
+		li $t2, 5
+
+		atc_copy_name_loop:
+			beqz $t2, atc_exit
+			nop
+
+			lw $t3, 0($t0) # load char from inventory item
+			sw $t3, 0($t1) # store char to cart item
+
+			addi $t0, $t0, 4 # inventory item name pointer --
+			addi $t1, $t1, 4 # cart item name pointer --
+			subi $t2, $t2, 1 # loop counter --
+
+			j atc_copy_name_loop
+			nop
+
+
+	atc_exit:
+		lw $ra, 0($sp)
+		addi $sp, $sp, 4
 		jr $ra
 		nop
