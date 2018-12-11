@@ -195,6 +195,8 @@ create_item:
 	jal prompt_and_store_item_name
 	nop
 
+	sw $zero, 24($sp)
+
 	# pop()
 	addi $sp, $sp, 4
 
