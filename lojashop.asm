@@ -1,7 +1,7 @@
 .data
 
 menu:
-	.asciiz "0. sair\n1. inserir item\n2. procurar item\n"
+	.asciiz "0. sair\n1. inserir item\n2. procurar item\n3. mostrar inventário\n"
 
 id_string:
 	.asciiz "\n\nid:         "
@@ -79,6 +79,10 @@ main:
 		beq $a0, $t0, handle_search_item
 		nop
 
+		li $t0, 3
+		beq $a0, $t0, handle_show_inventory
+		nop
+
 		j main_loop
 		nop
 
@@ -119,6 +123,38 @@ handle_search_item:
 		la $a0, message_item_not_found
 		li $a1, 0
 		li $v0, 55
+		syscall
+
+		j main_loop
+		nop
+
+handle_show_inventory:
+	la $t0, inventory
+	subi $sp, $sp, 4
+	sw $t0, 0($sp)
+
+	hsi_loop:
+		lw $t1, 0($t0)
+
+		beqz $t1, hsi_exit
+		nop
+
+		or $a0, $zero, $t0
+		jal display_item
+		nop
+
+		lw $t0, 0($sp)
+		add $t0, $t0, $s0
+		sw $t0, 0($sp)
+
+		j hsi_loop
+		nop
+	hsi_exit:
+		addi $sp, $sp, 4
+
+		li $v0, 8
+		or $a0, $zero, $t0
+		li $a1, 1
 		syscall
 
 		j main_loop
