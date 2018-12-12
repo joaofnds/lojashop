@@ -323,9 +323,14 @@ create_item:
 	subi $sp, $sp, 4
 	sw $v0, 0($sp)
 
+	# generate id by getting last item id and
+	# incrementing it
 	lw $a0, 0($sp)
-	jal prompt_and_store_item_id
-	nop
+	sub $a0, $a0, $s0
+	lw $t0, 0($a0)
+	addi $t0, $t0, 1
+	lw $a0, 0($sp)
+	sw $t0, 0($a0)
 
 	lw $a0, 0($sp)
 	jal prompt_and_store_item_quantity
