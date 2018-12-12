@@ -176,15 +176,20 @@ handle_checkout:
 	sw $v0, 0($sp)
 
 	hc_loop:
+		# display inventory header
+		la $a0, inventory_string
+		jal display_header
+		nop
+
 		# display inventory
 		la $a0, inventory
 		jal show_inventory
 		nop
 
-		# display cart
-		li $v0, 4
+		# display cart header
 		la $a0, cart_string
-		syscall
+		jal display_header
+		nop
 
 		lw $a0, 0($sp)
 		jal show_inventory
