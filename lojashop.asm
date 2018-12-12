@@ -4,7 +4,7 @@ menu:
 	.asciiz "0. sair\n1. inserir item\n2. procurar item\n3. mostrar inventário\n4. comprar"
 
 id_string:
-	.asciiz "\n\nid:         "
+	.asciiz "\n\ncodigo:     "
 
 quantity_string:
 	.asciiz "\nquantidade: "
@@ -19,7 +19,7 @@ comma_string:
 	.asciiz ","
 
 prompt_new_cart_item:
-	.asciiz "\ndigite o id do item que deseja adicionar ao carrinho: "
+	.asciiz "\ndigite o codigo do item que deseja adicionar ao carrinho: "
 
 header_string:
 	.asciiz "=========="
@@ -41,7 +41,7 @@ message_item_not_found:
 	.asciiz "item não encontrado\n"
 
 prompt_id:
-	.asciiz "digite o id"
+	.asciiz "digite o codigo"
 
 prompt_quantity:
 	.asciiz "digite a quantitade"
