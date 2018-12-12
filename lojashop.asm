@@ -18,11 +18,17 @@ name_string:
 comma_string:
 	.asciiz ","
 
-cart_string:
-	.asciiz "\n\ncarrinho:\n"
-
 prompt_new_cart_item:
 	.asciiz "\ndigite o id do item que deseja adicionar ao carrinho: "
+
+header_string:
+	.asciiz "=========="
+inventory_string:
+	.asciiz " Estoque "
+cart_string:
+	.asciiz " Carrinho "
+newline:
+	.asciiz "\n\n"
 
 dev_null:
 	.space 4
@@ -142,6 +148,10 @@ handle_search_item:
 		nop
 
 handle_show_inventory:
+	la $a0, inventory_string
+	jal display_header
+	nop
+
 	la $a0, inventory
 	jal show_inventory
 	nop
@@ -579,3 +589,25 @@ add_to_cart:
 		addi $sp, $sp, 4
 		jr $ra
 		nop
+
+# display_separtor(name)
+display_header:
+	or $t0, $zero, $a0
+	la $t1, header_string
+
+	li $v0, 4
+
+	la $a0, newline
+	syscall
+
+	or $a0, $zero, $t1
+	syscall
+
+	or $a0, $zero, $t0
+	syscall
+
+	or $a0, $zero, $t1
+	syscall
+
+	jr $ra
+	nop
