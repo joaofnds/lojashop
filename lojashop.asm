@@ -27,6 +27,8 @@ inventory_string:
 	.asciiz " Estoque "
 cart_string:
 	.asciiz " Carrinho "
+total_string:
+	.asciiz "\nTotal: R$"
 newline:
 	.asciiz "\n\n"
 
@@ -165,6 +167,8 @@ handle_show_inventory:
 	nop
 
 handle_checkout:
+	or $s1, $zero, $zero # total_accumulator = 0
+
 	la $a0, inventory
 	jal new_item_address
 	nop
@@ -214,9 +218,13 @@ handle_checkout:
 		beqz $t0, hc_exit
 		nop
 
+
 		# item->quantity--
 		subi $t0, $t0, 1
 		sw $t0, 4($v0)
+
+		lw $t0, 8($v0) # item->price
+		add $s1, $s1, $t0
 
 		lw $a0, 0($sp) # $a0 = stack_top() # *cart
 		lw $a1, 0($v0) # $t0 = item->id
@@ -247,6 +255,10 @@ handle_checkout:
 		sw $zero, 0($a0) # (*last_item++)->id = 0
 
 		addi $sp, $sp, 4 # pop()
+
+		or $a0, $zero, $s1
+		jal display_price
+		nop
 
 		j main_loop
 		nop
@@ -612,6 +624,29 @@ display_header:
 	syscall
 
 	or $a0, $zero, $t1
+	syscall
+
+	jr $ra
+	nop
+# display_price(price)
+display_price:
+	div $t0, $a0, 100
+	mfhi $t1
+
+	la $a0, total_string
+	li $v0, 4
+	syscall
+
+	or $a0, $zero, $t0
+	li $v0, 1
+	syscall
+
+	la $a0, comma_string
+	li $v0, 4
+	syscall
+
+	or $a0, $zero, $t1
+	li $v0, 1
 	syscall
 
 	jr $ra
