@@ -224,7 +224,7 @@ handle_checkout:
 
 		# exit if item->quantity == 0
 		lw $t0, 4($v0)
-		beqz $t0, hc_exit
+		beqz $t0, hc_loop
 		nop
 
 
