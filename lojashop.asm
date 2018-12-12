@@ -215,6 +215,10 @@ handle_checkout:
 		jal show_inventory
 		nop
 
+		or $a0, $zero, $s1
+		jal display_price
+		nop
+
 		# prompt item id
 		la $a0, prompt_new_cart_item
 		li $v0, 4
