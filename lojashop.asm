@@ -207,6 +207,9 @@ handle_checkout:
 		li $v0, 5
 		syscall
 
+		beqz $v0, hc_exit
+		nop
+
 		# find item by read id
 		la $a0, inventory
 		or $a1, $zero, $v0
