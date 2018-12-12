@@ -29,6 +29,8 @@ cart_string:
 	.asciiz " Carrinho "
 total_string:
 	.asciiz "\nTotal: R$"
+session_total_string:
+	.asciiz "\n\n====================\n\n\nNeste sessão foram vendidos R$"
 newline:
 	.asciiz "\n\n"
 
@@ -79,6 +81,7 @@ inventory:
 
 main:
 	lw $s0, block_size
+	or $s2, $zero, $zero
 
 	main_loop:
 		la $a0, menu
@@ -108,6 +111,9 @@ main:
 		nop
 
 	exit_main:
+		jal display_session_total
+		nop
+
 		li $v0, 10
 		syscall
 
@@ -262,6 +268,8 @@ handle_checkout:
 		or $a0, $zero, $s1
 		jal display_price
 		nop
+
+		add $s2, $s2, $s1 # Add checkout total to session total
 
 		j main_loop
 		nop
@@ -637,6 +645,30 @@ display_price:
 	mfhi $t1
 
 	la $a0, total_string
+	li $v0, 4
+	syscall
+
+	or $a0, $zero, $t0
+	li $v0, 1
+	syscall
+
+	la $a0, comma_string
+	li $v0, 4
+	syscall
+
+	or $a0, $zero, $t1
+	li $v0, 1
+	syscall
+
+	jr $ra
+	nop
+
+# display_session_total
+display_session_total:
+	div $t0, $s2, 100
+	mfhi $t1
+
+	la $a0, session_total_string
 	li $v0, 4
 	syscall
 
