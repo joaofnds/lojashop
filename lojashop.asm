@@ -61,19 +61,29 @@ block_size:
 
 inventory:
 	.word 1                       # id
-	.word 2                       # quantity
+	.word 5                       # quantity
 	.word 150                     # price
-	.asciiz "coca caçulinha     " # name
+	.asciiz "Coca caçulinha     " # name
 
 	.word 2                       # id
-	.word 20                      # quantity
-	.word 800                     # price
-	.asciiz "coca de litrao     " # name
+	.word 100                     # quantity
+	.word 599                     # price
+	.asciiz "Coca cola          " # name
 
 	.word 3                       # id
-	.word 30                      # quantity
-	.word 1000                    # price
-	.asciiz "coca de litrao mega" # name
+	.word 100                     # quantity
+	.word 49                      # price
+	.asciiz "Presunto (fatia)   " # name
+
+	.word 4                       # id
+	.word 50                      # quantity
+	.word 229                     # price
+	.asciiz "Leite longa vida   " # name
+
+	.word 5                       # id
+	.word 80                      # quantity
+	.word 319                     # price
+	.asciiz "Açúcar Refinado    " # name
 
 .text
 
